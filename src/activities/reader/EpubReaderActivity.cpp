@@ -905,7 +905,12 @@ void EpubReaderActivity::loop() {
     }
   }
 
-  if (footnoteDepth > 0 && mappedInput.wasReleased(MappedInputManager::Button::Back) &&
+  // Only a real Back button/remote returns from a followed link; the left-edge
+  // back *swipe* is a page-turn gesture on this surface and must page back
+  // instead, the same rule handleBackNavigation() applies below. Without this,
+  // tapping a chapter link arms the stack and every later back-swipe teleports
+  // to the Contents page (issue #4008).
+  if (footnoteDepth > 0 && !mappedInput.wasBackGesture() && mappedInput.wasReleased(MappedInputManager::Button::Back) &&
       mappedInput.getHeldTime() < ReaderUtils::GO_BACK_OR_HOME_MS) {
     restoreSavedPosition();
     return;
